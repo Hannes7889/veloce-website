@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VELOCE — Schmuck, in Bewegung</title>
+<meta name="description" content="VELOCE — Fine Jewelry, gefräst in Österreich. Veloce Milano, Veloce Atelier, Veloce Stella. Handgefertigte Anhänger aus Aluminium, Kupfer und Messing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-mark">V</div>
+  <div class="loader-line"><span></span></div>
+  <p id="loader-text">Lade die Kollektion …</p>
+</div>
+
+<header class="site-header" id="siteHeader">
+  <a class="brand" href="#top">VELOCE</a>
+  <nav>
+    <a href="#kollektion">Kollektion</a>
+    <a href="#maison">Maison</a>
+    <a href="#kontakt">Kontakt</a>
+    <a href="preisanalyse.html">Preisanalyse</a>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <canvas id="heroCanvas"></canvas>
+    <div class="hero-veil"></div>
+    <div class="hero-content">
+      <p class="eyebrow hero-eyebrow reveal">Fine Jewelry · MMXXVI · Made in Austria</p>
+      <h1 class="hero-title reveal">
+        <span class="hero-word">VELOCE</span>
+      </h1>
+      <p class="hero-sub reveal">
+        Schmuck in Bewegung.<br>
+        Gefräst, eloxiert, vollendet —<br>
+        in einer einzigen, ununterbrochenen Nacht.
+      </p>
+      <a class="btn btn-ghost reveal" href="#kollektion">Die Kollektion <span class="btn-arrow">→</span></a>
+    </div>
+    <div class="scroll-hint" aria-hidden="true"><span></span></div>
+  </section>
+
+  <!-- KOLLEKTION -->
+  <section class="section" id="kollektion">
+    <div class="section-head reveal">
+      <p class="eyebrow">La Collection</p>
+      <h2 class="section-title">Drei Stücke. Eine Bewegung.</h2>
+      <p class="section-lead">Jedes Stück wird auf unserer CNC-Fräse aus einem einzigen Rohling gefertigt — 12 Stunden in einem Durchlauf, ohne Unterbrechung, ohne Kompromiss.</p>
+    </div>
+
+    <article class="product" id="product-atelier">
+      <div class="product-stage reveal">
+        <canvas class="product-canvas" data-model="models/atelier.stl"></canvas>
+        <div class="stage-hint">Ziehen zum Drehen · Scrollen zum Zoomen</div>
+      </div>
+      <div class="product-info reveal">
+        <p class="eyebrow">01 · L'Essentiel</p>
+        <h3 class="product-name">Veloce <em>Atelier</em></h3>
+        <p class="product-desc">
+          Die Ikone. Ein klarer, geschnittener Anhänger auf feiner Schlangenkette — reduziert auf das Wesentliche.
+          Dunkel eloxiertes Aluminium, matt wie Mitternacht.
+        </p>
+        <div class="product-meta">
+          <span>Anhänger · CNC-gefräst</span>
+          <span>Aluminium · eloxiert</span>
+          <span>Kette 50 cm · 316L</span>
+        </div>
+        <p class="product-price">109,99 €</p>
+        <a class="btn btn-solid" href="#kontakt">Anfragen</a>
+      </div>
+    </article>
+
+    <article class="product product-reverse" id="product-milano">
+      <div class="product-stage reveal">
+        <canvas class="product-canvas" data-model="models/milano.stl"></canvas>
+        <div class="stage-hint">Ziehen zum Drehen · Scrollen zum Zoomen</div>
+      </div>
+      <div class="product-info reveal">
+        <p class="eyebrow">02 · La Signature</p>
+        <h3 class="product-name">Veloce <em>Milano</em></h3>
+        <p class="product-desc">
+          Der geschwungene Anhänger — unsere Signatur. Eine Linie, die sich wie ein Moment der Bewegung
+          festhält: gefräst in einem einzigen Durchlauf, eloxiert in tiefem Mitternachtsblau.
+        </p>
+        <div class="product-meta">
+          <span>Anhänger · einteilig gefräst</span>
+          <span>Aluminium · dunkel eloxiert</span>
+          <span>Limitierte Auflage</span>
+        </div>
+        <p class="product-price">139,99 €</p>
+        <a class="btn btn-solid" href="#kontakt">Anfragen</a>
+      </div>
+    </article>
+
+    <article class="product" id="product-stella">
+      <div class="product-stage reveal">
+        <canvas class="product-canvas" data-model="models/stella.stl"></canvas>
+        <div class="stage-hint">Ziehen zum Drehen · Scrollen zum Zoomen</div>
+      </div>
+      <div class="product-info reveal">
+        <p class="eyebrow">03 · Le Bracelet</p>
+        <h3 class="product-name">Veloce <em>Stella</em></h3>
+        <p class="product-desc">
+          Das Armband für jeden Tag. Ein geschmeidiger Bogen aus gefrästem Metall — leicht, präzise,
+          still elegant. Messing, Kupfer oder Aluminium, in unseren Werkstattfarben eloxiert.
+        </p>
+        <div class="product-meta">
+          <span>Armband · einteilig</span>
+          <span>Messing / Kupfer / Aluminium</span>
+          <span>Verschluss inklusive</span>
+        </div>
+        <p class="product-price">59,99 €</p>
+        <a class="btn btn-solid" href="#kontakt">Anfragen</a>
+      </div>
+    </article>
+  </section>
+
+  <!-- MAISON -->
+  <section class="section maison" id="maison">
+    <div class="section-head reveal">
+      <p class="eyebrow">La Maison</p>
+      <h2 class="section-title">Zwölf Stunden Stille.</h2>
+    </div>
+    <div class="maison-text reveal">
+      <p>
+        Unsere Maschine arbeitet, während die Stadt schläft. Zwölf Stunden ohne manuelle
+        Interaktion — ein Rohling, ein Programm, ein fertiges Stück. Was andere von Hand
+        erzählen, schreiben wir in Aluminium, Kupfer und Messing: Präzision als Poesie.
+      </p>
+      <p>
+        Jeder Anhänger wird einzeln gefräst, von Hand entgratet und in unserer Eloxier-Station
+        eingefärbt. Kein Lager, keine Serie im klassischen Sinn — jedes Stück ist der
+        Abdruck eines einzigen, ununterbrochenen Arbeitsgangs.
+      </p>
+    </div>
+    <div class="maison-facts reveal">
+      <div class="fact"><span class="fact-number">12 h</span><span class="fact-label">Dauerbetrieb<br>ohne Unterbrechung</span></div>
+      <div class="fact"><span class="fact-number">0,02 mm</span><span class="fact-label">Präzision der<br>Fräsbahn</span></div>
+      <div class="fact"><span class="fact-number">1</span><span class="fact-label">Rohling<br>pro Stück</span></div>
+      <div class="fact"><span class="fact-number">100 %</span><span class="fact-label">Made in<br>Austria</span></div>
+    </div>
+  </section>
+
+  <!-- KONTAKT -->
+  <section class="section contact" id="kontakt">
+    <div class="section-head reveal">
+      <p class="eyebrow">Contact</p>
+      <h2 class="section-title">Warten Sie nicht auf Gelegenheiten.</h2>
+      <p class="section-lead">Schreiben Sie uns — wir antworten innerhalb von 24 Stunden.</p>
+    </div>
+    <div class="contact-grid reveal">
+      <a class="contact-card" href="mailto:hallo@veloce.jewelry">
+        <span class="contact-label">E-Mail</span>
+        <span class="contact-value">hallo@veloce.jewelry</span>
+      </a>
+      <a class="contact-card" href="https://instagram.com/veloce.jewelry" target="_blank" rel="noopener">
+        <span class="contact-label">Instagram</span>
+        <span class="contact-value">@veloce.jewelry</span>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-brand">VELOCE</div>
+  <p class="footer-note">Schmuck in Bewegung · MMXXVI · Alle Rechte vorbehalten</p>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

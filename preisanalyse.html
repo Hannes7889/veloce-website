@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VELOCE — Preissensitivität</title>
+<meta name="description" content="VELOCE — Interaktive Preissensitivitätsanalyse: Gewinn & Marge je Preis für Veloce Atelier, Veloce Milano und Veloce Stella, live berechnet im Browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ============ Dashboard-spezifisch (baut auf style.css auf) ============ */
+.dash-hero { padding: 170px 6vw 40px; }
+.dash-hero .section-title { font-size: clamp(34px, 5.4vw, 62px); }
+.dash-lead { max-width: 720px; }
+.dash-note {
+  font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--faint); margin-top: 26px;
+}
+
+.section { padding: 90px 6vw; }
+.section-head { margin-bottom: 56px; }
+
+.card {
+  border: 1px solid var(--line);
+  background: linear-gradient(165deg, rgba(18, 33, 74, 0.32), rgba(7, 11, 20, 0.55));
+  padding: 26px 28px;
+}
+.card-label {
+  font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 14px;
+}
+.card-value {
+  font-family: var(--font-display);
+  font-size: 27px; letter-spacing: 0.04em; color: var(--ink);
+}
+.card-sub { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.card-value.gold { background: linear-gradient(115deg, #f3e3c3, #c9a86a 55%, #8f7438); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.card-value.blue  { background: linear-gradient(115deg, #f4f7ff, var(--blue-bright) 60%, #33539f); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.card-value.rose  { background: linear-gradient(115deg, #f7ecef, #d9aab9 55%, #a86a80); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+.table-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; margin-top: 34px; flex-wrap: wrap; }
+.table-head-row .section-lead { margin: 0; max-width: 620px; }
+.btn-export {
+  background: transparent; border: 1px solid rgba(150, 180, 245, 0.35);
+  color: var(--silver); font-family: var(--font-display);
+  font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+  padding: 14px 26px; cursor: pointer; transition: all 0.3s ease; white-space: nowrap;
+}
+.btn-export:hover { border-color: var(--blue-glint); color: var(--ink); background: rgba(43, 74, 143, 0.25); box-shadow: 0 0 24px rgba(95, 134, 224, 0.25); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; margin-top: 44px; }
+
+.input-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-top: 34px;
+}
+.field label {
+  display: block;
+  font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 10px;
+}
+.field input {
+  width: 100%;
+  background: transparent; border: 0;
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--silver);
+  font-family: var(--font-display); font-size: 19px; letter-spacing: 0.06em;
+  padding: 8px 0;
+  transition: border-color 0.3s ease;
+}
+.field input:focus { outline: none; border-bottom-color: var(--blue-glint); }
+.field .unit { color: var(--muted); font-size: 12px; margin-top: 6px; letter-spacing: 0.12em; }
+
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.chart-card { padding: 30px 32px; }
+.chart-title {
+  font-family: var(--font-serif); font-size: 20px; font-style: italic;
+  color: var(--silver); margin-bottom: 4px;
+}
+.chart-sub { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--faint); margin-bottom: 20px; }
+.chart-wrap { position: relative; height: 400px; }
+
+.legend-hint { margin-top: 26px; display: flex; gap: 30px; flex-wrap: wrap; }
+.legend-hint span { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+.dot { width: 22px; height: 2px; display: inline-block; }
+
+/* Wettbewerb */
+.comp-strip { margin-top: 44px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.comp-strip .card-value { font-size: 24px; }
+.position-note {
+  margin-top: 40px; padding: 34px 38px; text-align: center;
+  border: 1px solid rgba(95, 134, 224, 0.30);
+  background: linear-gradient(165deg, rgba(18, 33, 74, 0.35), rgba(7, 11, 20, 0.60));
+}
+.position-note .kicker { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--faint); margin-bottom: 14px; }
+.position-note p { font-family: var(--font-serif); font-style: italic; font-size: 22px; color: var(--silver); line-height: 1.7; }
+.position-note strong { color: var(--ink); font-weight: 500; }
+
+.table-card { overflow-x: auto; }
+table.lux { width: 100%; border-collapse: collapse; min-width: 640px; }
+table.lux th {
+  font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--faint); font-weight: 500;
+  text-align: right; padding: 14px 18px;
+  border-bottom: 1px solid var(--line-strong);
+}
+table.lux th:first-child, table.lux td:first-child { text-align: left; padding-left: 10px; }
+table.lux td {
+  padding: 12px 18px; border-bottom: 1px solid var(--line);
+  color: var(--muted); font-size: 14px; text-align: right;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+table.lux tbody tr { transition: background 0.25s ease; }
+table.lux tbody tr:hover { background: rgba(43, 74, 143, 0.18); }
+table.lux tr.ref td {
+  background: rgba(95, 134, 224, 0.10);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px rgba(95, 134, 224, 0.25);
+}
+table.lux tr.ref td:first-child::after { content: " · Referenz"; color: var(--blue-glint); font-size: 10px; letter-spacing: 0.2em; }
+
+.insight { margin-top: 44px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+.insight p { font-family: var(--font-serif); font-size: 17px; color: var(--silver); line-height: 1.8; }
+.insight .num {
+  display: block; font-family: var(--font-display); font-size: 22px;
+  color: var(--ink); margin-bottom: 12px; letter-spacing: 0.05em;
+}
+
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .input-grid { grid-template-columns: repeat(2, 1fr); }
+  .chart-grid { grid-template-columns: 1fr; }
+  .insight { grid-template-columns: repeat(2, 1fr); }
+  .comp-strip { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .stats-grid, .insight, .comp-strip { grid-template-columns: 1fr; }
+  .input-grid { grid-template-columns: 1fr; }
+  .chart-wrap { height: 320px; }
+  .site-header nav a { font-size: 9px; letter-spacing: 0.14em; }
+}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-mark">V</div>
+  <div class="loader-line"><span></span></div>
+  <p id="loader-text">Berechne die Analyse …</p>
+</div>
+
+<header class="site-header" id="siteHeader">
+  <a class="brand" href="index.html">VELOCE</a>
+  <nav>
+    <a href="index.html#kollektion">Kollektion</a>
+    <a href="#analyse">Parameter</a>
+    <a href="#kurven">Kurven</a>
+    <a href="#tabelle">Tabelle</a>
+    <a href="#break-even">Break-even</a>
+    <a href="#wettbewerb">Wettbewerb</a>
+    <a href="#erkenntnisse">Erkenntnisse</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="dash-hero" id="top">
+    <p class="eyebrow reveal">Analyse · Strategie · MMXXVI</p>
+    <h1 class="section-title reveal">Preissensitivität.</h1>
+    <p class="section-lead dash-lead reveal">
+      Gewinn und Marge für jeden Preis — Halsketten im Luxusband 100,00–169,99 €, das Einstiegs-Armband Stella um 60 €.
+      Identische Formeln wie <span style="color:var(--silver)">Veloce-Preissensitivitaet.xlsx</span>:
+      Gewinn = Preis − Selbstkosten, Marge = Gewinn ÷ Preis. Alle Werte rechnen live im Browser.
+    </p>
+    <p class="dash-note reveal">Veloce Atelier · Veloce Milano · Veloce Stella · Schritte von 5 €</p>
+  </section>
+
+  <!-- PARAMETER -->
+  <section class="section" id="analyse">
+    <div class="section-head reveal">
+      <p class="eyebrow">01 · Parameter</p>
+      <h2 class="section-title">Die Stellschrauben.</h2>
+      <p class="section-lead">Selbstkosten und Preisband anpassen — Tabelle, Kurven und Kennzahlen rechnen sofort nach.</p>
+    </div>
+
+    <div class="input-grid reveal">
+      <div class="field">
+        <label for="skA">Selbstkosten Atelier</label>
+        <input id="skA" type="number" step="0.01" min="0" value="10.70">
+        <div class="unit">€ pro Stück</div>
+      </div>
+      <div class="field">
+        <label for="skM">Selbstkosten Milano</label>
+        <input id="skM" type="number" step="0.01" min="0" value="13.35">
+        <div class="unit">€ pro Stück</div>
+      </div>
+      <div class="field">
+        <label for="skS">Selbstkosten Stella</label>
+        <input id="skS" type="number" step="0.01" min="0" value="7.80">
+        <div class="unit">€ pro Stück</div>
+      </div>
+      <div class="field">
+        <label for="schritt">Schrittweite</label>
+        <input id="schritt" type="number" step="1" min="1" value="5">
+        <div class="unit">€ · für beide Bänder</div>
+      </div>
+      <div class="field">
+        <label for="von">Band Ketten · von</label>
+        <input id="von" type="number" step="1" min="1" value="100">
+        <div class="unit">€</div>
+      </div>
+      <div class="field">
+        <label for="bis">Band Ketten · bis</label>
+        <input id="bis" type="number" step="0.01" min="1" value="169.99">
+        <div class="unit">€</div>
+      </div>
+      <div class="field">
+        <label for="vonS">Band Stella · von</label>
+        <input id="vonS" type="number" step="1" min="1" value="50">
+        <div class="unit">€</div>
+      </div>
+      <div class="field">
+        <label for="bisS">Band Stella · bis</label>
+        <input id="bisS" type="number" step="0.01" min="1" value="69.99">
+        <div class="unit">€</div>
+      </div>
+      <div class="field">
+        <label for="qty">Stück/Monat · je Produkt</label>
+        <input id="qty" type="number" step="1" min="1" value="30">
+        <div class="unit">Verkaufsmenge</div>
+      </div>
+      <div class="field">
+        <label for="fk">Fixkosten/Monat</label>
+        <input id="fk" type="number" step="0.01" min="0" value="66.25">
+        <div class="unit">€ · inkl. SVS</div>
+      </div>
+      <div class="field">
+        <label for="skp">Startkapital</label>
+        <input id="skp" type="number" step="1" min="0" value="9160">
+        <div class="unit">€ · einmalig</div>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="stats">
+      <div class="card reveal">
+        <div class="card-label">Referenz · Atelier 109,99 €</div>
+        <div class="card-value blue" id="stAtelier">—</div>
+        <div class="card-sub" id="stAtelierSub">Marge —</div>
+      </div>
+      <div class="card reveal">
+        <div class="card-label">Referenz · Milano 139,99 €</div>
+        <div class="card-value gold" id="stMilano">—</div>
+        <div class="card-sub" id="stMilanoSub">Marge —</div>
+      </div>
+      <div class="card reveal">
+        <div class="card-label">Referenz · Stella 59,99 €</div>
+        <div class="card-value rose" id="stStella">—</div>
+        <div class="card-sub" id="stStellaSub">Marge —</div>
+      </div>
+      <div class="card reveal">
+        <div class="card-label">Band · Spanne Gewinn</div>
+        <div class="card-value blue" id="stSpanne">—</div>
+        <div class="card-sub" id="stSpanneSub">Atelier · Milano</div>
+      </div>
+      <div class="card reveal">
+        <div class="card-label">Maximum im Band</div>
+        <div class="card-value gold" id="stMax">—</div>
+        <div class="card-sub" id="stMaxSub">Gewinn & Marge am oberen Bandende</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KURVEN -->
+  <section class="section" id="kurven">
+    <div class="section-head reveal">
+      <p class="eyebrow">02 · Kurven</p>
+      <h2 class="section-title">Gewinn & Marge je Preis.</h2>
+      <p class="section-lead">Atelier in Mitternachtsblau, Milano in Gold — wie in der Excel-Analyse.</p>
+    </div>
+
+    <div class="chart-grid">
+      <div class="card chart-card reveal">
+        <div class="chart-title">Gewinn je Preis</div>
+        <div class="chart-sub">Deckungsbeitrag in € pro Stück · gestrichelt: Netto-Gewinn/Monat bei gewählter Menge (Break-even-Zone)</div>
+        <div class="chart-wrap"><canvas id="chartGewinn"></canvas></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-title">Marge je Preis</div>
+        <div class="chart-sub">Gewinn in % des Verkaufspreises</div>
+        <div class="chart-wrap"><canvas id="chartMarge"></canvas></div>
+      </div>
+    </div>
+
+    <div class="legend-hint reveal">
+      <span><i class="dot" style="background:#5f86e0"></i> Veloce Atelier</span>
+      <span><i class="dot" style="background:#c9a86a"></i> Veloce Milano</span>
+      <span><i class="dot" style="background:#d9aab9"></i> Veloce Stella</span>
+      <span><i class="dot" style="background:transparent;border-top:1px dashed #9fb7e8"></i> Netto-Gewinn/Monat (Mix)</span>
+    </div>
+  </section>
+
+  <!-- TABELLE -->
+  <section class="section" id="tabelle">
+    <div class="section-head reveal">
+      <p class="eyebrow">03 · Tabelle</p>
+      <h2 class="section-title">Alle Preispunkte.</h2>
+      <div class="table-head-row">
+        <p class="section-lead">Referenzzeilen (109,99 € / 139,99 € / 59,99 €) sind markiert. Werte runden auf 2 Dezimalstellen. Der Export liefert dieselben Werte wie Veloce-Preissensitivitaet.xlsx.</p>
+        <button class="btn-export" id="btnExport" type="button" title="Aktuelle Tabelle als CSV (Excel-kompatibel) herunterladen">CSV · Excel exportieren</button>
+      </div>
+    </div>
+    <div class="card table-card reveal">
+      <table class="lux" id="table">
+        <thead>
+          <tr>
+            <th>Preis</th>
+            <th>Gewinn Atelier</th>
+            <th>Marge Atelier</th>
+            <th>Gewinn Milano</th>
+            <th>Marge Milano</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="card table-card reveal" style="margin-top:26px">
+      <div class="chart-sub" style="margin-bottom:14px">Veloce Stella · Armband · Band 50,00 – 69,99 €</div>
+      <table class="lux" id="tableStella">
+        <thead>
+          <tr>
+            <th>Preis</th>
+            <th>Gewinn Stella</th>
+            <th>Marge Stella</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyStella"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BREAK-EVEN -->
+  <section class="section" id="break-even">
+    <div class="section-head reveal">
+      <p class="eyebrow">04 · Break-even</p>
+      <h2 class="section-title">Fixkosten &amp; Startkapital.</h2>
+      <p class="section-lead">Bei wählbarer Verkaufsmenge: Ab welchem Preis deckt ein Produkt die Fixkosten, und wann ist das Startkapital amortisiert? Die Zone im Gewinn-Chart oben zeigt die Fixkosten-Deckung — die Werte entsprechen dem Blatt Break-even in Veloce-Gewinn.xlsx.</p>
+    </div>
+
+    <div class="card chart-card reveal">
+      <div class="chart-title">Startkapital-Amortisation je Preis</div>
+      <div class="chart-sub">Monate bis zur Rückzahlung des Startkapitals · gestrichelt: 12-Monats-Ziel</div>
+      <div class="chart-wrap" style="height:340px"><canvas id="chartAmort"></canvas></div>
+    </div>
+
+    <div class="legend-hint reveal">
+      <span><i class="dot" style="background:#5f86e0"></i> Veloce Atelier</span>
+      <span><i class="dot" style="background:#c9a86a"></i> Veloce Milano</span>
+      <span><i class="dot" style="background:#d9aab9"></i> Veloce Stella</span>
+      <span><i class="dot" style="background:transparent;border-top:1px dashed #96a3c0"></i> 12-Monats-Ziel</span>
+    </div>
+
+    <div class="card table-card reveal" style="margin-top:26px">
+      <table class="lux">
+        <thead>
+          <tr>
+            <th>Produkt</th>
+            <th>Selbstkosten</th>
+            <th>Referenzpreis</th>
+            <th>Break-even-Preis · Fixkosten</th>
+            <th>Amortisation @ Referenz</th>
+          </tr>
+        </thead>
+        <tbody id="beTbody"></tbody>
+      </table>
+    </div>
+
+    <div class="comp-strip" id="beStats">
+      <div class="card reveal">
+        <div class="card-label">Break-even-Preis · Atelier</div>
+        <div class="card-value blue" id="bePreis">—</div>
+        <div class="card-sub" id="bePreisSub">Fixkosten-Deckung</div>
+      </div>
+      <div class="card reveal">
+        <div class="card-label">Amortisation · Mix @ Referenz</div>
+        <div class="card-value gold" id="beAmort">—</div>
+        <div class="card-sub" id="beAmortSub">Startkapital-Rückzahlung</div>
+      </div>
+      <div class="card reveal">
+        <div class="card-label">Fixkosten deckt ab</div>
+        <div class="card-value blue" id="beCover">—</div>
+        <div class="card-sub" id="beCoverSub">Mix @ Referenzpreisen</div>
+      </div>
+    </div>
+
+    <div class="position-note reveal">
+      <div class="kicker">Kernaussage</div>
+      <p id="beNote">—</p>
+    </div>
+  </section>
+
+  <!-- WETTBEWERB -->
+  <section class="section" id="wettbewerb">
+    <div class="section-head reveal">
+      <p class="eyebrow">05 · Wettbewerb</p>
+      <h2 class="section-title">Preislandschaft.</h2>
+      <p class="section-lead">Wo steht das Veloce-Band im Markt? Preisspannen als Linien, Einstiegspreise als Marker.
+      Quellen: cartier.com · mejuri.com · lokale Juweliere, Stand 08/2026. Änderst du das Band oben, rechnet die Positionierung mit.</p>
+    </div>
+
+    <div class="card chart-card reveal">
+      <div class="chart-title">Wettbewerbslinie · Preisspannen</div>
+      <div class="chart-sub">Logarithmische Preisskala in € · Marker = Einstiegspreis je Marke</div>
+      <div class="chart-wrap" style="height:340px"><canvas id="chartWettbewerb"></canvas></div>
+    </div>
+
+    <div class="legend-hint reveal">
+      <span><i class="dot" style="background:#96a3c0"></i> Lokale Juweliere</span>
+      <span><i class="dot" style="background:#7d8bb5"></i> Mejuri · DTC</span>
+      <span><i class="dot" style="background:#5f86e0"></i> VELOCE Band</span>
+      <span><i class="dot" style="background:#c9a86a"></i> Cartier</span>
+    </div>
+
+    <div class="card table-card reveal" style="margin-top:26px">
+      <table class="lux">
+        <thead>
+          <tr>
+            <th>Marke</th>
+            <th>Einstieg</th>
+            <th>Spanne</th>
+            <th>Position zum Band</th>
+            <th>Bewertung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>VELOCE</td>
+            <td>100,00 €</td>
+            <td>100,00 – 169,99 €</td>
+            <td>Das eigene Band</td>
+            <td>Affordable-Luxury-Lücke: klar über Fast Fashion, weit unter Cartier.</td>
+          </tr>
+          <tr>
+            <td>Cartier</td>
+            <td>1.830 €</td>
+            <td>1.830 – 13.500 €</td>
+            <td><span id="compCartier">—</span></td>
+            <td>Luxus-Referenz, kein Preiswettbewerb — Veloce lebt vom Image, nicht vom Vergleich.</td>
+          </tr>
+          <tr>
+            <td>Mejuri · DTC</td>
+            <td>~60 €</td>
+            <td>~60 – 300 €</td>
+            <td><span id="compMejuri">—</span></td>
+            <td>Überlappt im oberen Drittel; Veloce differenziert über CNC-Handwerk &amp; Story statt Goldpreis.</td>
+          </tr>
+          <tr>
+            <td>Lokale Juweliere</td>
+            <td>~40 €</td>
+            <td>~40 – 200 €</td>
+            <td><span id="compLokal">—</span></td>
+            <td>Voll überlappend — Preisdruck aus dem Mittelmarkt; Differenzierung über Design &amp; Marke.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="comp-strip" id="compStats">
+      <div class="card reveal">
+        <div class="card-label">Faktor zu Cartier</div>
+        <div class="card-value gold" id="compFaktor">—</div>
+        <div class="card-sub">Band-Oberkante vs. Cartier-Einstieg 1.830 €</div>
+      </div>
+      <div class="card reveal">
+        <div class="card-label">Position in Mejuri-Spanne</div>
+        <div class="card-value blue" id="compMejuriPos">—</div>
+        <div class="card-sub">wo das Band in 60 – 300 € liegt</div>
+      </div>
+      <div class="card reveal">
+        <div class="card-label">Überlappung lokal</div>
+        <div class="card-value blue" id="compLokalOvl">—</div>
+        <div class="card-sub">Anteil des Bands in der Juwelier-Spanne 40 – 200 €</div>
+      </div>
+    </div>
+
+    <div class="position-note reveal">
+      <div class="kicker">Positionierung</div>
+      <p id="compNoteText">—</p>
+    </div>
+  </section>
+
+  <!-- ERKENNTNISSE -->
+  <section class="section" id="erkenntnisse">
+    <div class="section-head reveal">
+      <p class="eyebrow">06 · Erkenntnisse</p>
+      <h2 class="section-title">Was die Kurven sagen.</h2>
+    </div>
+    <div class="insight reveal">
+      <div class="card">
+        <span class="num" id="insLinear">—</span>
+        <p>Der Gewinn steigt linear mit dem Preis — die Selbstkosten sind fix. Jeder Euro mehr Preis ist fast ein Euro mehr Deckungsbeitrag.</p>
+      </div>
+      <div class="card">
+        <span class="num" id="insMarge">—</span>
+        <p>Die Marge wächst ebenfalls: teurer bedeutet nicht nur mehr Umsatz, sondern auch relativ profitabler — bis zur Marke von 100 % nähert sich die Kurve asymptotisch an.</p>
+      </div>
+      <div class="card">
+        <span class="num" id="insMax">—</span>
+        <p>Der maximale Deckungsbeitrag liegt am oberen Bandende (169,99 €). Das Luxusband ist aus Margensicht nach oben offen.</p>
+      </div>
+      <div class="card">
+        <span class="num" id="insStella">—</span>
+        <p id="insStellaText">Stella ist der niedrigschwellige Einstieg in die Marke.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-brand">VELOCE</div>
+  <p class="footer-note">Preissensitivität · live im Browser · identische Formeln wie die Excel-Analyse</p>
+</footer>
+
+<script>
+/* ============================================================
+   VELOCE — Preissensitivität (live im Browser)
+   Formeln identisch mit Veloce-Preissensitivitaet.xlsx:
+   Gewinn = Preis − Selbstkosten · Marge = Gewinn ÷ Preis
+   ============================================================ */
+
+const REF = { atelier: 109.99, milano: 139.99, stella: 59.99 };
+
+/* Wettbewerbsdaten (Quellen: cartier.com, mejuri.com, lokale Juweliere · 08/2026) */
+const CARTIER_ENTRY = 1830;
+const SPAN_MEJURI = { min: 60, max: 300 };
+const SPAN_LOKAL = { min: 40, max: 200 };
+const COMPETITORS = [
+  { label: 'Lokale Juweliere', entry: 40,  min: 40,   max: 200,    color: '#96a3c0' },
+  { label: 'Mejuri · DTC',     entry: 60,  min: 60,   max: 300,    color: '#7d8bb5' },
+  { label: 'VELOCE Band',      entry: 100, min: 100,  max: 169.99, color: '#5f86e0' },
+  { label: 'Cartier',          entry: 1830, min: 1830, max: 13500, color: '#c9a86a' }
+];
+
+const $ = (id) => document.getElementById(id);
+const num = (id) => parseFloat($(id).value.replace(',', '.')) || 0;
+
+const eur = (v) => v.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+const eur0 = (v) => Math.round(v * 100) / 100;
+const pct = (v) => (v * 100).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %';
+
+const COL = { atelier: '#5f86e0', milano: '#c9a86a', stella: '#d9aab9' };
+
+function prices(skA, skM, von, bis, schritt) {
+  const arr = [];
+  for (let p = von; p <= bis + 1e-9; p += schritt) {
+    arr.push(Math.round(p * 100) / 100);
+  }
+  const last = arr[arr.length - 1];
+  if (Math.abs(last - bis) > 1e-9) arr.push(bis);
+  return arr;
+}
+
+function row(p, skA, skM) {
+  const gA = eur0(p - skA), gM = eur0(p - skM);
+  return { p, gA, mA: gA / p, gM, mM: gM / p };
+}
+
+function rowS(p, skS) {
+  const gS = eur0(p - skS);
+  return { p, gS, mS: gS / p };
+}
+
+/* ---------- Charts ---------- */
+let chartGewinn = null, chartMarge = null, chartWettbewerb = null, chartAmort = null;
+
+const baseScales = {
+  x: { grid: { color: 'rgba(140,168,230,0.10)' }, ticks: { color: '#96a3c0', font: { family: 'Inter' } }, border: { color: 'rgba(140,168,230,0.25)' } },
+  y: { grid: { color: 'rgba(140,168,230,0.10)' }, ticks: { color: '#96a3c0', font: { family: 'Inter' } }, border: { display: false } }
+};
+
+const tooltipStyle = {
+  backgroundColor: 'rgba(7,11,20,0.96)',
+  titleColor: '#e9edf6', bodyColor: '#c7d3ea',
+  borderColor: 'rgba(150,180,245,0.35)', borderWidth: 1,
+  titleFont: { family: 'Cinzel', size: 13, weight: '500' },
+  bodyFont: { family: 'Inter', size: 12 },
+  padding: 14, cornerRadius: 2, displayColors: true, boxWidth: 10, boxHeight: 10
+};
+
+function makeChart(canvasId, labelY, fmtTick, extraScales) {
+  const ctx = $(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: 'Veloce Atelier', data: [], borderColor: COL.atelier, backgroundColor: COL.atelier,
+        borderWidth: 2, pointRadius: 3, pointBackgroundColor: COL.atelier, pointBorderColor: 'rgba(5,7,13,0.9)',
+        tension: 0.35, fill: false },
+      { label: 'Veloce Milano', data: [], borderColor: COL.milano, backgroundColor: COL.milano,
+        borderWidth: 2, pointRadius: 3, pointBackgroundColor: COL.milano, pointBorderColor: 'rgba(5,7,13,0.9)',
+        tension: 0.35, fill: false },
+      { label: 'Veloce Stella', data: [], borderColor: COL.stella, backgroundColor: COL.stella,
+        borderWidth: 2, pointRadius: 3, pointBackgroundColor: COL.stella, pointBorderColor: 'rgba(5,7,13,0.9)',
+        tension: 0.35, fill: false }
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { ...tooltipStyle, callbacks: { label: (c) => ' ' + c.dataset.label + ': ' + fmtTick(c.parsed.y) } }
+      },
+      scales: { ...baseScales, ...(extraScales || {}) }
+    }
+  });
+}
+
+/* ---------- Break-even-Zone & Amortisation ---------- */
+const AXIS_Y1 = {
+  position: 'right',
+  grid: { display: false },
+  border: { display: false },
+  ticks: { color: '#8fa6cf', font: { family: 'Inter' } },
+  title: { display: true, text: 'Netto-Gewinn/Monat · Mix (€)', color: '#8fa6cf', font: { family: 'Inter', size: 10 }, padding: { bottom: 8 } }
+};
+
+function addZoneDatasets(chart) {
+  chart.data.datasets.push({
+    label: 'Netto-Gewinn/Monat · Zone (≥ 0)', yAxisID: 'y1', data: [],
+    borderColor: 'rgba(150,200,235,0.80)', borderWidth: 1.5, borderDash: [6, 4],
+    pointRadius: 0, tension: 0.35, fill: 'origin', backgroundColor: 'rgba(96,180,140,0.14)'
+  });
+  chart.data.datasets.push({
+    label: 'Netto-Gewinn/Monat · Zone (< 0)', yAxisID: 'y1', data: [],
+    borderColor: 'rgba(230,120,130,0.80)', borderWidth: 1.5, borderDash: [6, 4],
+    pointRadius: 0, tension: 0.35, fill: 'origin', backgroundColor: 'rgba(210,90,105,0.16)'
+  });
+}
+
+function makeAmort() {
+  const ctx = $('chartAmort').getContext('2d');
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: 'Veloce Atelier', data: [], borderColor: COL.atelier, borderWidth: 2, pointRadius: 3, tension: 0.35, fill: false },
+      { label: 'Veloce Milano', data: [], borderColor: COL.milano, borderWidth: 2, pointRadius: 3, tension: 0.35, fill: false },
+      { label: 'Veloce Stella', data: [], borderColor: COL.stella, borderWidth: 2, pointRadius: 3, tension: 0.35, fill: false },
+      { label: '12-Monats-Linie', data: [], borderColor: 'rgba(150,163,192,0.45)', borderWidth: 1, borderDash: [3, 5], pointRadius: 0, fill: false }
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          ...tooltipStyle,
+          callbacks: {
+            label: (c) => {
+              if (c.dataset.label === '12-Monats-Linie') return ' 12-Monats-Ziel';
+              const v = c.parsed.y;
+              return ' ' + c.dataset.label + ': ' + (v >= 24 ? '≥ 24 Monate' : v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' Monate');
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ...baseScales.x },
+        y: { ...baseScales.y, title: { display: true, text: 'Monate bis Amortisation', color: '#96a3c0', font: { family: 'Inter', size: 10 }, padding: { bottom: 8 } } }
+      }
+    }
+  });
+}
+
+function buildBE(qty, fk, skp, skA, skM, skS, merged) {
+  const net = (p, sk) => (p - sk) * qty - fk;
+  const months = (p, sk) => { const n = net(p, sk); return n > 0 ? Math.min(24, skp / n) : null; };
+  const be = (sk) => sk + fk / qty;
+  const mon = (sk, ref) => { const n = net(ref, sk); return n > 0 ? skp / n : Infinity; };
+  const fmtM = (m) => (m === Infinity ? '∞' : m.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' M.');
+
+  /* Amortisations-Chart */
+  chartAmort.data.labels = merged;
+  chartAmort.data.datasets[0].data = merged.map((p) => months(p, skA));
+  chartAmort.data.datasets[1].data = merged.map((p) => months(p, skM));
+  chartAmort.data.datasets[2].data = merged.map((p) => months(p, skS));
+  chartAmort.data.datasets[3].data = merged.map(() => 12);
+  chartAmort.update('none');
+
+  /* Break-even-Zone im Gewinn-Chart (Mix = Ø der drei Linien) */
+  const netMix = (p) => (((p - skA) + (p - skM) + (p - skS)) / 3) * qty - fk;
+  chartGewinn.data.datasets[3].data = merged.map((p) => { const v = netMix(p); return v >= 0 ? +v.toFixed(2) : null; });
+  chartGewinn.data.datasets[4].data = merged.map((p) => { const v = netMix(p); return v < 0 ? +v.toFixed(2) : null; });
+
+  /* Tabelle */
+  const prod = [
+    { name: 'Atelier', ref: REF.atelier, sk: skA },
+    { name: 'Milano', ref: REF.milano, sk: skM },
+    { name: 'Stella', ref: REF.stella, sk: skS }
+  ];
+  const mixBe = prod.reduce((s, x) => s + be(x.sk), 0) / 3;
+  const mixNet = prod.reduce((s, x) => s + Math.max(net(x.ref, x.sk), 0.001), 0) / 3;
+  const mixMon = skp / mixNet;
+  $('beTbody').innerHTML = prod.map((x) =>
+    '<tr><td>' + x.name + '</td><td>' + eur(x.sk) + '</td><td>' + eur(x.ref) + '</td>' +
+    '<td>' + eur(be(x.sk)) + '</td><td>' + fmtM(mon(x.sk, x.ref)) + '</td></tr>'
+  ).join('') +
+    '<tr class="ref"><td>Mix (Ø)</td><td>—</td><td>—</td><td>' + eur(mixBe) + '</td><td>' + fmtM(mixMon) + '</td></tr>';
+
+  /* Karten & Kernaussage */
+  const cover = Math.max(1, Math.ceil(fk / (((REF.atelier - skA) + (REF.milano - skM) + (REF.stella - skS)) / 3)));
+  $('bePreis').textContent = eur(be(skA));
+  $('bePreisSub').textContent = 'Atelier · bei ' + qty.toLocaleString('de-DE') + ' Stück/Monat';
+  $('beAmort').textContent = fmtM(mixMon);
+  $('beAmortSub').textContent = 'Startkapital ' + eur(skp) + ' · Mix @ Referenz';
+  $('beCover').textContent = cover.toLocaleString('de-DE') + ' Stück/Monat';
+  $('beCoverSub').textContent = 'ab hier deckt der Mix @ Referenz die Fixkosten';
+  $('beNote').innerHTML =
+    'Die Fixkosten sind trivial: Bei ' + qty.toLocaleString('de-DE') + ' Stück/Monat deckt schon <strong>' + eur(be(skA)) + '</strong> (Atelier) sie — der operative Break-even liegt bei <strong>' +
+    cover.toLocaleString('de-DE') + ' Stück/Monat</strong>. Der echte Engpass ist das Startkapital: <strong>' + fmtM(mixMon) + '</strong> Amortisation im Mix bei den Referenzpreisen.';
+}
+
+/* ---------- Wettbewerbslinie ---------- */
+function makeLandscape() {
+  const ctx = $('chartWettbewerb').getContext('2d');
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: COMPETITORS.map((c) => c.label),
+      datasets: [
+        {
+          label: 'Preisspanne',
+          data: COMPETITORS.map((c) => [c.min, c.max]),
+          backgroundColor: COMPETITORS.map((c) => c.label === 'VELOCE Band' ? 'rgba(95,134,224,0.55)' : 'rgba(150,163,192,0.16)'),
+          borderColor: COMPETITORS.map((c) => c.color),
+          borderWidth: 1.5,
+          barThickness: 18
+        },
+        {
+          type: 'scatter',
+          label: 'Einstiegspreis',
+          data: COMPETITORS.map((c, i) => ({ x: c.entry, y: i })),
+          pointRadius: 5, pointHoverRadius: 6,
+          pointBackgroundColor: '#0a0e17',
+          pointBorderColor: '#e9edf6', pointBorderWidth: 1.5
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          ...tooltipStyle,
+          callbacks: {
+            label: (c) => {
+              if (c.dataset.label === 'Einstiegspreis') return ' Einstieg: ' + eur(c.parsed.x);
+              const v = c.parsed.x;
+              const r = Array.isArray(v) ? v : [v, v];
+              return ' ' + eur(r[0]) + ' – ' + eur(r[1]);
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'logarithmic',
+          min: 30, max: 20000,
+          grid: { color: 'rgba(140,168,230,0.10)' },
+          border: { color: 'rgba(140,168,230,0.25)' },
+          ticks: {
+            color: '#96a3c0', font: { family: 'Inter' },
+            callback: (v) => v >= 1000
+              ? (v / 1000).toLocaleString('de-DE', { maximumFractionDigits: 0 }) + 'k €'
+              : v.toLocaleString('de-DE') + ' €'
+          }
+        },
+        y: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: {
+            color: (ctx) => ctx.index === 2 ? '#e9edf6' : '#96a3c0',
+            font: (ctx) => ctx.index === 2
+              ? { family: 'Cinzel', size: 13, weight: '600' }
+              : { family: 'Inter', size: 12 }
+          }
+        }
+      }
+    }
+  });
+}
+
+function buildCompetition(von, bis) {
+  const fTop = CARTIER_ENTRY / bis;
+  const fBot = CARTIER_ENTRY / von;
+  const fmt1 = (v) => v.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+
+  $('compFaktor').textContent = fmt1(fTop) + '× – ' + fmt1(fBot) + '×';
+  $('compCartier').textContent = '~' + fmt1(fTop) + '× über dem Band';
+
+  const lo = Math.max(0, (von - SPAN_MEJURI.min) / (SPAN_MEJURI.max - SPAN_MEJURI.min));
+  const hi = Math.min(1, (bis - SPAN_MEJURI.min) / (SPAN_MEJURI.max - SPAN_MEJURI.min));
+  $('compMejuriPos').textContent = Math.round(lo * 100) + ' – ' + Math.round(hi * 100) + ' %';
+  $('compMejuri').textContent = Math.round(lo * 100) + ' – ' + Math.round(hi * 100) + ' % der Spanne';
+
+  const ovl = Math.max(0, Math.min(bis, SPAN_LOKAL.max) - Math.max(von, SPAN_LOKAL.min)) / (bis - von);
+  $('compLokalOvl').textContent = Math.round(ovl * 100) + ' %';
+  $('compLokal').textContent = Math.round(ovl * 100) + ' % überlappt';
+
+  $('compNoteText').innerHTML =
+    'Veloce besetzt die <strong>Affordable-Luxury-Lücke</strong>: ' +
+    fmt1(fTop) + '× unter dem Cartier-Einstieg, klar über Fast Fashion — ' +
+    'mittig im Segment von Mejuri und den lokalen Juwelieren. Das Band endet ' +
+    'weit vor der Luxusschwelle: Der Preis signalisiert Qualität, ohne mit Cartier zu konkurrieren. ' +
+    'Stella öffnet bei ~60 € zusätzlich das Einstiegs- und Geschenksegment — in voller Mejuri-/Juwelier-Überlappung.';
+}
+
+/* ---------- Tabelle ---------- */
+function withRefs(rows, refs, make) {
+  const extra = [];
+  refs.forEach((rp) => {
+    if (!rows.some((r) => Math.abs(r.p - rp) < 1e-6)) extra.push(make(rp));
+  });
+  return rows.concat(extra).sort((a, b) => a.p - b.p);
+}
+
+function buildTable(rows, skA, skM) {
+  const all = withRefs(rows, [REF.atelier, REF.milano], (p) => row(p, skA, skM));
+  const tb = $('tbody');
+  tb.innerHTML = all.map((r) => {
+    const isRef = Math.abs(r.p - REF.atelier) < 1e-6 || Math.abs(r.p - REF.milano) < 1e-6;
+    return '<tr class="' + (isRef ? 'ref' : '') + '">' +
+      '<td>' + r.p.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €</td>' +
+      '<td>' + eur(r.gA) + '</td><td>' + pct(r.mA) + '</td>' +
+      '<td>' + eur(r.gM) + '</td><td>' + pct(r.mM) + '</td></tr>';
+  }).join('');
+}
+
+/* ---------- Stella-Tabelle ---------- */
+function buildTableStella(rows, skS) {
+  const all = withRefs(rows, [REF.stella], (p) => rowS(p, skS));
+  const tb = $('tbodyStella');
+  tb.innerHTML = all.map((r) => {
+    const isRef = Math.abs(r.p - REF.stella) < 1e-6;
+    return '<tr class="' + (isRef ? 'ref' : '') + '">' +
+      '<td>' + r.p.toLocaleString('de-DE', { minimumFractionDigits: 2 }) + ' €</td>' +
+      '<td>' + eur(r.gS) + '</td><td>' + pct(r.mS) + '</td></tr>';
+  }).join('');
+}
+
+/* ---------- Kennzahlen ---------- */
+function buildStats(rows, skA, skM, skS) {
+  const a = row(REF.atelier, skA, skM);
+  const m = row(REF.milano, skA, skM);
+  const s = rowS(REF.stella, skS);
+  $('stAtelier').textContent = eur(a.gA);
+  $('stAtelierSub').textContent = 'Marge ' + pct(a.mA);
+  $('stMilano').textContent = eur(m.gM);
+  $('stMilanoSub').textContent = 'Marge ' + pct(m.mM);
+  $('stStella').textContent = eur(s.gS);
+  $('stStellaSub').textContent = 'Marge ' + pct(s.mS);
+
+  const first = rows[0], last = rows[rows.length - 1];
+  $('stSpanne').textContent = eur(first.gA) + ' – ' + eur(last.gA);
+  $('stSpanneSub').textContent = 'Atelier · Milano ' + eur(first.gM) + ' – ' + eur(last.gM);
+
+  $('stMax').textContent = eur(last.gM);
+  $('stMaxSub').textContent = 'Milano @ ' + last.p.toLocaleString('de-DE') + ' € · Marge ' + pct(last.mM);
+
+  $('insLinear').textContent = eur(last.gA - first.gA) + ' Spanne';
+  $('insMarge').textContent = pct(last.mA - first.mA) + ' Marge-Zuwachs';
+  $('insMax').textContent = eur(last.gM);
+  $('insStella').textContent = eur(s.gS);
+  $('insStellaText').textContent =
+    'Stella ist der niedrigschwellige Einstieg in die Marke: bei ' + eur(REF.stella) +
+    ' bleiben ' + eur(s.gS) + ' Deckungsbeitrag (' + pct(s.mS) + ' Marge) — volle Luxus-Marge trotz Einstiegspreis.';
+}
+
+/* ---------- Bänder aus den Eingabefeldern (normalisiert) ---------- */
+function readBands() {
+  let von = num('von'), bis = num('bis'), schritt = num('schritt');
+  let vonS = num('vonS'), bisS = num('bisS');
+  schritt = Math.max(1, schritt);
+  if (bis <= von) { bis = von + schritt; }
+  if (bisS <= vonS) { bisS = vonS + schritt; }
+  if (von <= 0) { von = 1; }
+  if (vonS <= 0) { vonS = 1; }
+  if (schritt > (bis - von)) { schritt = Math.max(1, Math.round(bis - von)); }
+  return { von, bis, vonS, bisS, schritt };
+}
+
+function readBreakEven() {
+  let qty = num('qty'), fk = num('fk'), skp = num('skp');
+  if (!isFinite(qty) || qty < 1) qty = 1;
+  if (!isFinite(fk) || fk < 0) fk = 0;
+  if (!isFinite(skp) || skp < 0) skp = 0;
+  return { qty, fk, skp };
+}
+
+/* ---------- CSV-Export (Excel-kompatibel, deutsches Format) ---------- */
+function buildCSV() {
+  const skA = num('skA'), skM = num('skM'), skS = num('skS');
+  const { von, bis, vonS, bisS, schritt } = readBands();
+  const dec2 = (v) => v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const ps = prices(skA, skM, von, bis, schritt);
+  const sPs = prices(skS, skS, vonS, bisS, schritt);
+  const chain = withRefs(ps.map((p) => row(p, skA, skM)), [REF.atelier, REF.milano], (p) => row(p, skA, skM));
+  const stella = withRefs(sPs.map((p) => rowS(p, skS)), [REF.stella], (p) => rowS(p, skS));
+
+  const L = [];
+  L.push('VELOCE — Preissensitivität;identische Werte wie Veloce-Preissensitivitaet.xlsx');
+  L.push('Exportiert am;' + new Date().toLocaleDateString('de-DE'));
+  L.push('Selbstkosten Atelier;' + dec2(skA));
+  L.push('Selbstkosten Milano;' + dec2(skM));
+  L.push('Selbstkosten Stella;' + dec2(skS));
+  L.push('Band Ketten;' + dec2(von) + ' – ' + dec2(bis));
+  L.push('Band Stella;' + dec2(vonS) + ' – ' + dec2(bisS));
+  L.push('');
+  L.push('Halsketten — Gewinn & Marge');
+  L.push('Preis;Gewinn Atelier;Marge Atelier;Gewinn Milano;Marge Milano');
+  chain.forEach((r) => L.push([dec2(r.p), dec2(r.gA), pct(r.mA), dec2(r.gM), pct(r.mM)].join(';')));
+  L.push('');
+  L.push('Stella — Gewinn & Marge');
+  L.push('Preis;Gewinn Stella;Marge Stella');
+  stella.forEach((r) => L.push([dec2(r.p), dec2(r.gS), pct(r.mS)].join(';')));
+  return '\uFEFF' + L.join('\r\n');
+}
+
+function exportCSV() {
+  const csv = buildCSV();
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Veloce-Preissensitivitaet_' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+  const btn = $('btnExport');
+  const old = btn.textContent;
+  btn.textContent = 'Exportiert ✓';
+  setTimeout(() => { btn.textContent = old; }, 1600);
+}
+
+/* ---------- Update (live) ---------- */
+function update() {
+  const skA = num('skA'), skM = num('skM'), skS = num('skS');
+  const { qty, fk, skp } = readBreakEven();
+  const { von, bis, vonS, bisS, schritt } = readBands();
+
+  const ps = prices(skA, skM, von, bis, schritt);
+  const sPs = prices(skS, skS, vonS, bisS, schritt);
+  const rows = ps.map((p) => row(p, skA, skM));
+  const sRows = sPs.map((p) => rowS(p, skS));
+
+  /* Beide Bänder auf einer Achse: Vereinigungsmenge der Preispunkte, Lücken = null */
+  const merged = Array.from(new Set(ps.concat(sPs))).sort((a, b) => a - b);
+  const pick = (map) => merged.map((p) => (map.has(p) ? map.get(p) : null));
+
+  chartGewinn.data.labels = merged;
+  chartGewinn.data.datasets[0].data = pick(new Map(rows.map((r) => [r.p, r.gA])));
+  chartGewinn.data.datasets[1].data = pick(new Map(rows.map((r) => [r.p, r.gM])));
+  chartGewinn.data.datasets[2].data = pick(new Map(sRows.map((r) => [r.p, r.gS])));
+  chartGewinn.update('none');
+
+  chartMarge.data.labels = merged;
+  chartMarge.data.datasets[0].data = pick(new Map(rows.map((r) => [r.p, r.mA * 100])));
+  chartMarge.data.datasets[1].data = pick(new Map(rows.map((r) => [r.p, r.mM * 100])));
+  chartMarge.data.datasets[2].data = pick(new Map(sRows.map((r) => [r.p, r.mS * 100])));
+  chartMarge.update('none');
+
+  chartWettbewerb.data.datasets[0].data[2] = [von, bis];
+  chartWettbewerb.data.datasets[1].data[2].x = von;
+  chartWettbewerb.update('none');
+  buildCompetition(von, bis);
+
+  buildBE(qty, fk, skp, skA, skM, skS, merged);
+
+  buildTable(rows, skA, skM);
+  buildTableStella(sRows, skS);
+  buildStats(rows, skA, skM, skS);
+}
+
+/* ---------- Header-Scroll ---------- */
+const header = $('siteHeader');
+window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 40), { passive: true });
+
+/* ---------- Reveal ---------- */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+/* ---------- Init ---------- */
+['skA', 'skM', 'skS', 'von', 'bis', 'vonS', 'bisS', 'schritt', 'qty', 'fk', 'skp'].forEach((id) => $(id).addEventListener('input', update));
+$('btnExport').addEventListener('click', exportCSV);
+
+chartGewinn = makeChart('chartGewinn', 'Gewinn (€)', eur, { y1: AXIS_Y1 });
+addZoneDatasets(chartGewinn);
+chartMarge  = makeChart('chartMarge', 'Marge (%)', (v) => v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' %');
+chartWettbewerb = makeLandscape();
+chartAmort = makeAmort();
+update();
+
+window.addEventListener('load', () => {
+  const l = $('loader');
+  l.classList.add('hidden');
+  setTimeout(() => l.remove(), 900);
+});
+setTimeout(() => { const l = $('loader'); if (l && !l.classList.contains('hidden')) l.classList.add('hidden'); }, 6000);
+</script>
+</body>
+</html>
