@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hannes7889.github.io/veloce-website/sitemap.xml
